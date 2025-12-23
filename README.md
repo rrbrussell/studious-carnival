@@ -3,11 +3,11 @@
 This a test program for learning more about how the CGI or Common Gateway
 Interface works.
 
-![Screenshot 0](/assets/screenshot/00.png)
+![Screenshot 0](../blob/master/screenshots/00.png)
 
-![Screenshot 1](/assets/screenshot/01.png)
+![Screenshot 1](/assets/screenshots/01.png)
 
-![Screenshot 2](/assets/screenshot/02.png)
+![Screenshot 2](/assets/screenshots/02.png)
 
 ## References
 
