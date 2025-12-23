@@ -5,9 +5,9 @@ Interface works.
 
 ![Screenshot 0](../master/screenshots/00.png)
 
-![Screenshot 1](/assets/screenshots/01.png)
+![Screenshot 1](../master/screenshots/01.png)
 
-![Screenshot 2](/assets/screenshots/02.png)
+![Screenshot 2](../master/screenshots/02.png)
 
 ## References
 
