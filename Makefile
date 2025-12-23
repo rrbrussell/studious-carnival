@@ -11,6 +11,9 @@ clean:
 	cargo clean --verbose
 	rm Cargo.lock
 
+install: release
+	install -D --preserve-timestamps target/release/testcgi $(HOME)/public_html/cgi_bin/testcgi
+
 release: target/release/testcgi
 
 target/debug/testcgi: src/*.rs
