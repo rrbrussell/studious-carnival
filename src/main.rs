@@ -25,6 +25,7 @@ use std::io::Stdout;
 use std::io::Write;
 
 use decode_query_string::decode_query_string;
+use decode_urlencoded::decode_urlencoded;
 
 #[derive(PartialEq)]
 enum RequestMethod {
@@ -75,13 +76,13 @@ fn process_request(method: RequestMethod, out: &mut Vec<u8>) -> io::Result<()>
     _ = write!(out, "Status: 200 OK\r\n");
     _ = write!(out, "Content-Type: text/html;\r\n");
     _ = write!(out, "\r\n");
-    _ = write!(out, "<html><body>");
+    _ = write!(out, "<!DOCTYPE html><html lang=\"en\"><body>");
     _ = write!(out, "<h1>Command Line Arguments</h1>");
     for argument in env::args() {
         _ = write!(out, "<li>{argument}</li>");
     }
     _ = write!(out, "<hr />");
-    _ = write!(out, "<h1>Environment Variables<h1>");
+    _ = write!(out, "<h1>Environment Variables</h1>");
     _ = write!(out, "<dl>");
     for (key, value) in env::vars() {
         _ = write!(out, "<dt>{key}</dt><dd>{value}</dd>");
@@ -128,7 +129,26 @@ fn process_request(method: RequestMethod, out: &mut Vec<u8>) -> io::Result<()>
                     decode_query_string(val.as_bytes());
                 _ = write!(out, "<dl>");
                 for (key, value) in data {
-                    _ = write!(out, "<dt>{key}</dt><dd>{value}</dd>");
+                    match decode_urlencoded(key) {
+                        Some(key) => {
+                            _ = write!(out, "<dt>{key}</dt>");
+                        }
+                        None => {
+                            return
+                            Err(io::Error::new(io::ErrorKind::InvalidData,
+                                "A percent encoded value was invalid."));
+                        }
+                    }
+                    match decode_urlencoded(value) {
+                        Some(value) => {
+                            _ = write!(out, "<dd>{value}</dd>");
+                        }
+                        None => {
+                            return
+                            Err(io::Error::new(io::ErrorKind::InvalidData,
+                                "A percent encoded value was invalid."));
+                        }
+                    }
                 }
                 _ = write!(out, "</dl>");
             }
