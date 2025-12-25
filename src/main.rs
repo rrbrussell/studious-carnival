@@ -1,9 +1,30 @@
+// src/main.rs
+// Copyright (C) 2025 Robert R. Russell
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License as published by the Free Software
+// Foundation, version 3.
+//
+// This program is distributed in the hope that it will be usefull, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+// details.
+//
+// You should have received a copy of the GNU General Public License along with
+// this program. If not, see <https://www.gnu.org/licenses/>.
+
+mod decode_query_string;
+mod decode_urlencoded;
+
+use std::collections::HashMap;
 use std::env;
 use std::io;
 use std::io::BufRead;
 use std::io::Read;
 use std::io::Stdout;
 use std::io::Write;
+
+use decode_query_string::decode_query_string;
 
 #[derive(PartialEq)]
 enum RequestMethod {
@@ -20,7 +41,7 @@ enum RequestMethod {
 
 fn main() -> io::Result<()> {
     let mut stdout: Stdout = io::stdout();
-    let mut output_buffer = Vec::<u8>::with_capacity(16384);
+    let mut output_buffer = Vec::<u8>::with_capacity(16 * 1024);
     let method: RequestMethod;
     match env::var("REQUEST_METHOD") {
         Ok(val) => {
@@ -48,8 +69,8 @@ fn main() -> io::Result<()> {
     return Ok(());
 }
 
-// out is a Vec<u8> the Write trait implementations always return Ok().
-fn process_request(_method: RequestMethod, out: &mut Vec<u8>) -> io::Result<()>
+// out is a Vec<u8> and the Write trait implementations always return Ok().
+fn process_request(method: RequestMethod, out: &mut Vec<u8>) -> io::Result<()>
 {
     _ = write!(out, "Status: 200 OK\r\n");
     _ = write!(out, "Content-Type: text/html;\r\n");
@@ -94,6 +115,26 @@ fn process_request(_method: RequestMethod, out: &mut Vec<u8>) -> io::Result<()>
             }
         }
     };
+
+    if method == RequestMethod::GET {
+        match env::var("QUERY_STRING") {
+            Err(_) => {
+                return Err(
+                    io::Error::new(io::ErrorKind::InvalidInput,
+                        "We don't have a QUERY_STRING meta variable."));
+            }
+            Ok(val) => {
+                let data: HashMap<String, String> =
+                    decode_query_string(val.as_bytes());
+                _ = write!(out, "<dl>");
+                for (key, value) in data {
+                    _ = write!(out, "<dt>{key}</dt><dd>{value}</dd>");
+                }
+                _ = write!(out, "</dl>");
+            }
+        }
+    }
+    
     _ = write!(out, "</body></html>");
     return Ok(());
 }
